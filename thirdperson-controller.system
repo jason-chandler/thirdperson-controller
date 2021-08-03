@@ -1,0 +1,8 @@
+;; -*- mode:lisp -*-
+
+(defsystem "thirdperson-controller"
+  :serial t
+  :components ((:file "package")
+               (:file "lib")
+               (:file "main"))
+  :depends-on ("react-utilities"))
