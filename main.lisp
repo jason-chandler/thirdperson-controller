@@ -16,4 +16,7 @@
          (player rigidbody angular-factor) (ffi:ref js:pc -vec3 -z-e-r-o)
          (player rigidbody restitution) 0.1)
 
+(defparameter cam (find-by-name "CAMERA"))
+(set-up-camera cam)
+
 (setup '<app> "root" :remote-eval t)

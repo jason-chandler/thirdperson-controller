@@ -1,21 +1,17 @@
 (in-package :thirdperson-controller)
 
-;; (on update (ffi:ref js:pc app) (lambda (dt &rest _)
-;;                                 (js:console.log dt)))
-
-(defparameter *mouse-speed* 1.4)
-
+(defparameter *mouse-speed* 5.4)
 
 (defun set-up-camera (camera)
   (let ((eulers (vec3))
         (app (ffi:ref js:pc app))
         (ray-end (find-by-name "RAYCAST-ENDPOINT")))
     (labels ((on-mouse-move (e &rest _)
-               (if ((ffi:ref js:pc -mouse is-pointer-locked))
+               (if (eql ((ffi:ref js:pc -mouse is-pointer-locked)) js:true)
                    (progn 
                      (js-setf (eulers x) (- (ffi:ref eulers x)
-                                                    (mod (/ (* *mouse-speed* (ffi:ref e dx)) 60) 360))
-                              (eulers y) (+ (ffi:ref eulers y) (mod (/ (* *mouse-speed* (ffi:ref e dy)) 60) 360)))
+                                                    (mod (* (* *mouse-speed* (ffi:ref e dx)) 0.01666666) 360))
+                              (eulers y) (+ (ffi:ref eulers y) (mod (* (* *mouse-speed* (ffi:ref e dy)) 0.01666666) 360)))
                      (if (< (ffi:ref eulers x) 0)
                          (ffi:set (ffi:ref eulers x) (+ (ffi:ref eulers x) 360)))
                      (if (< (ffi:ref eulers y) 0)
@@ -27,7 +23,7 @@
                       (to ((ffi:ref ray-end get-position)))
                       (hit-point to)
                       (hit ((ffi:ref app systems rigidbody raycast-first) from to)))
-                 (if hit
+                 (if (not (eql hit js:null))
                      (ffi:ref hit point)
                      to)))
              (p-update (dt &rest _)
@@ -36,20 +32,11 @@
                      (target-x (ffi:ref eulers y))
                      (target-ang (vec3 :x (- target-x) :y target-y)))
                  ((ffi:ref origin-entity set-euler-angles) target-ang)
-                 ((ffi:ref camera set-position) (get-world-point))
+                 ((ffi:ref camera set-position) (funcall #'get-world-point))
                  ((ffi:ref camera look-at) origin-entity))))
       (on mousemove (ffi:ref app mouse) #'on-mouse-move camera)
       (on mousedown (ffi:ref app mouse) #'on-mouse-down camera)
-      (add-to-post-update :cam #'p-update))))
+      (add-to-update :cam #'p-update))))
 
 
-(js:console.log (remove-from-post-update :cam))
-(defparameter cam (find-by-name "CAMERA"))
 
-(js:console.log (find-by-name "CAMERA"))
-
-(set-up-camera cam)
-
-(js:console.log *post-update-list*)
-
-(js:console.log (find-by-name "RAYCAST-ENDPOINT"))
