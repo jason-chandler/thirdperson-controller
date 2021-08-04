@@ -144,8 +144,8 @@
                                             entity)
   (or entity))
 
+(defmacro on (action entity fun)
+  `((ffi:ref ,entity on) (ffi:cl->js ,(compiler::kebab-to-lower-camel-case (string action))) ,fun ,entity))
 
 (update-dt)
-
-
 
