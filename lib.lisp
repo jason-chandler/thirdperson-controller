@@ -3,6 +3,7 @@
 (defparameter *dt* nil)
 
 (defparameter *update-list* nil)
+(defparameter *post-update-list* nil)
 
 (defun create-script (script-name)
   (js:pc.create-script #jscript-name))
@@ -136,6 +137,19 @@
 (defun remove-from-update (key)
   (setf *update-list* (remove key *update-list* :key #'car)))
 
+(defun post-update-dt ()
+  ((ffi:ref js:pc app on) #j"postUpdate" (lambda (dt &rest _) 
+                                       (setf *dt* dt)
+                                       (loop for (key . val) in *post-update-list*
+                                             do (when val (funcall val *dt*))))))
+
+
+(defun add-to-post-update (key val)
+  (push (cons key val) *post-update-list*))
+
+(defun remove-from-post-update (key)
+  (setf *post-update-list* (remove key *post-update-list* :key #'car)))
+
 (defun load-audio (entity path &rest args)
   ((ffi:ref js:pc app assets load-from-url) #jpath 
                                             #j"audio"
@@ -144,8 +158,9 @@
                                             entity)
   (or entity))
 
-(defmacro on (action entity fun)
-  `((ffi:ref ,entity on) (ffi:cl->js ,(compiler::kebab-to-lower-camel-case (string action))) ,fun ,entity))
+(defmacro on (action entity fun &optional (this entity))
+  `((ffi:ref ,entity on) (ffi:cl->js ,(compiler::kebab-to-lower-camel-case (string action))) ,fun ,this))
 
 (update-dt)
+(post-update-dt)
 
