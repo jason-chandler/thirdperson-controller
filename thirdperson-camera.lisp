@@ -3,6 +3,11 @@
 (defparameter *mouse-speed* 5.4)
 
 (defparameter *movement-speed* 0.1)
+(defparameter *jumping* nil)
+(defparameter *jump-force* 10)
+(defparameter *ground-check-ray* (vec3 :y -1.2))
+(defparameter *ray-end* (vec3))
+(defparameter *ground-normal* (vec3))
 
 (defun set-up-camera (camera)
   (let ((eulers (vec3))
@@ -20,6 +25,16 @@
                          (ffi:set (ffi:ref eulers y) (+ (ffi:ref eulers y) 360))))))
              (on-mouse-down (e &rest _)
                ((ffi:ref app mouse enable-pointer-lock)))
+             (jump (&rest _)
+               (let ((entity (ffi:ref camera parent parent)))
+                 (if (and (not (eql (ffi:ref entity on-ground) js:null))
+                          (not *jumping*))
+                     (progn
+                       ((ffi:ref entity rigidbody apply-impulse) 0 *jump-force* 0)
+                       (setf *jumping* t)
+                       (js-setf (entity on-ground) js:null)
+                       (js:set-timeout ((ffi:ref (lambda () (setf *jumping* nil))
+                                                 "bind") entity) 500)))))
              (get-world-point (&rest _)
                (let* ((from ((ffi:ref camera parent get-position)))
                       (to ((ffi:ref ray-end get-position)))
@@ -35,6 +50,16 @@
                  ((ffi:ref origin-entity set-euler-angles) target-ang)
                  ((ffi:ref camera set-position) (funcall #'get-world-point))
                  ((ffi:ref camera look-at) origin-entity)))
+             (update-jump (dt &rest _)
+               (let* ((entity (ffi:ref camera parent parent))
+                      (pos ((ffi:ref entity get-position))))
+                 ((ffi:ref *ray-end* "add2") pos *ground-check-ray*)
+                 (let ((result ((ffi:ref js:pc "app" "systems" "rigidbody" "raycastFirst") pos *ray-end*)))
+                   (js-setf (entity on-ground) result)
+                   (if (not *jumping*)
+                       ((ffi:ref entity rigidbody apply-force) (vec3 :x 0 :y -200 :z 0)))
+                   (if (not (eql result js:null))
+                       ((ffi:ref *ground-normal* copy) (ffi:ref result normal))))))
              (update-movement (dt &rest _)
                (let* ((entity (ffi:ref camera parent parent))
                      (world-direction (vec3))
@@ -51,7 +76,8 @@
                      (incf z))
                  (if (is-pressed-p "KEY_S")
                      (decf z))
-
+                 (if (is-pressed-p "KEY_SPACE")
+                     (jump))
                  (if (or 
                       (not (zerop x))
                       (not (zerop z)))
@@ -78,7 +104,10 @@
       (on mousemove (ffi:ref app mouse) #'on-mouse-move camera)
       (on mousedown (ffi:ref app mouse) #'on-mouse-down camera)
       (add-to-update :cam #'p-update)
-      (add-to-update :movement #'update-movement))))
+      (add-to-update :movement #'update-movement)
+      (add-to-update :jump #'update-jump))))
 
 
 
+
+(js:console.log ((ffi:ref js:pc "app" "systems" "rigidbody" "raycastFirst") pos *ray-end*))
