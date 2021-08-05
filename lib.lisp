@@ -73,10 +73,12 @@
 (defun on-trigger-enter (ent fun)
   ((ffi:ref ent collision on) #j"triggerenter" fun ent))
 
-(defun teleport (ent &key x y z)
-  (ffi:set (ffi:ref ent rigidbody linear-velocity) (ffi:ref js:pc -vec3 -z-e-r-o))
-  (ffi:set (ffi:ref ent rigidbody angular-velocity) (ffi:ref js:pc -vec3 -z-e-r-o))
-  ((ffi:ref ent rigidbody teleport) (ffi:new (ffi:ref "pc.Vec3") x y z)))
+(defun teleport (ent &key x y z rot-x rot-y rot-z keep-vel)
+  (if (not keep-vel)
+      (progn (ffi:set (ffi:ref ent rigidbody linear-velocity) (ffi:ref js:pc -vec3 -z-e-r-o))
+             (ffi:set (ffi:ref ent rigidbody angular-velocity) (ffi:ref js:pc -vec3 -z-e-r-o))))
+  ((ffi:ref ent rigidbody teleport) (ffi:new (ffi:ref "pc.Vec3") x y z)
+                                    (ffi:new (ffi:ref "pc.Vec3") rot-x rot-y rot-z)))
 
 (defun load-glb (entity path shadows &rest args)
   ((ffi:ref entity add-component) #j"model" (ffi:object #j"type" #j"asset"
@@ -143,6 +145,13 @@
 
 (defmacro on (action entity fun &optional (this entity))
   `((ffi:ref ,entity on) (ffi:cl->js ,(compiler::kebab-to-lower-camel-case (string action))) ,fun ,this))
+
+(defmacro off (action entity fun &optional (this entity))
+  `((ffi:ref ,entity off) (ffi:cl->js ,(compiler::kebab-to-lower-camel-case (string action))) ,fun ,this))
+
+(defmacro is-pressed-p (key)
+  `(eql ((ffi:ref js:pc app keyboard is-pressed) (ffi:ref js:pc ,key)) 
+        js:true))
 
 (update-dt)
 
