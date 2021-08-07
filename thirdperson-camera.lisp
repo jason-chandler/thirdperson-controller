@@ -2,7 +2,7 @@
 
 (defparameter *mouse-speed* 5.4)
 
-(defparameter *movement-speed* 8)
+(defparameter *movement-speed* 64)
 (defparameter *jumping* nil)
 (defparameter *jump-force* 10)
 (defparameter *ground-check-ray* (vec3 :y -1.2))
@@ -92,8 +92,7 @@
                              (target-y (+ (ffi:ref eulers x) 180))
                              (rot (vec3 :y target-y)))
                          ((ffi:ref ((ffi:ref pos normalize)) scale) *movement-speed*)
-                         ((ffi:ref pos add) ((ffi:ref entity get-position)))
-                         ((ffi:ref entity rigidbody apply-force) ((ffi:ref ((ffi:ref pos sub) ((ffi:ref entity get-position))) scale) *movement-speed*))))))))
+                         ((ffi:ref entity rigidbody apply-force) pos)))))))
       (on mousemove (ffi:ref app mouse) #'on-mouse-move camera)
       (on mousedown (ffi:ref app mouse) #'on-mouse-down camera)
       (add-to-update :cam #'p-update)
