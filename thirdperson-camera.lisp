@@ -2,7 +2,7 @@
 
 (defparameter *mouse-speed* 5.4)
 
-(defparameter *movement-speed* 0.1)
+(defparameter *movement-speed* 8)
 (defparameter *jumping* nil)
 (defparameter *jump-force* 10)
 (defparameter *ground-check-ray* (vec3 :y -1.2))
@@ -64,8 +64,8 @@
                (let* ((entity (ffi:ref camera parent parent))
                      (world-direction (vec3))
                      (temp-direction (vec3))
-                     (forward (ffi:ref entity forward))
-                     (right (ffi:ref entity right))
+                     (forward (ffi:ref camera forward))
+                     (right (ffi:ref camera right))
                      (x 0)
                      (z 0))
                  (if (is-pressed-p "KEY_A")
@@ -93,14 +93,7 @@
                              (rot (vec3 :y target-y)))
                          ((ffi:ref ((ffi:ref pos normalize)) scale) *movement-speed*)
                          ((ffi:ref pos add) ((ffi:ref entity get-position)))
-                         (teleport entity
-                                   :x (ffi:ref pos x)
-                                   :y (ffi:ref pos y)
-                                   :z (ffi:ref pos z)
-                                   :rot-x (ffi:ref rot x)
-                                   :rot-y (ffi:ref rot y)
-                                   :rot-z (ffi:ref rot z)
-                                   :keep-vel t)))))))
+                         ((ffi:ref entity rigidbody apply-force) ((ffi:ref ((ffi:ref pos sub) ((ffi:ref entity get-position))) scale) *movement-speed*))))))))
       (on mousemove (ffi:ref app mouse) #'on-mouse-move camera)
       (on mousedown (ffi:ref app mouse) #'on-mouse-down camera)
       (add-to-update :cam #'p-update)
@@ -108,6 +101,3 @@
       (add-to-update :jump #'update-jump))))
 
 
-
-
-(js:console.log ((ffi:ref js:pc "app" "systems" "rigidbody" "raycastFirst") pos *ray-end*))
