@@ -5,5 +5,6 @@
   :components ((:file "package")
                (:file "lib")
                (:file "thirdperson-camera")
+               (:file "thirdperson-model")
                (:file "main"))
   :depends-on ("react-utilities"))

@@ -7,6 +7,7 @@
   (jsx (:h1 () "")))
 
 (defparameter player (find-by-name "PLAYER"))
+(set-up-model player "./files/assets/testbox.glb")
 
 (defparameter light (find-by-name "LIGHT"))
 (js-setf (light light shadow-distance) 100
