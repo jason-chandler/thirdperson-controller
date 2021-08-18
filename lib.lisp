@@ -153,5 +153,11 @@
   `(eql ((ffi:ref js:pc app keyboard is-pressed) (ffi:ref js:pc ,key)) 
         js:true))
 
+(defun do-anim (entity anim blend-speed loop-animation-p)
+  (if loop-animation-p
+      (js-setf (entity animation loop) js:true)
+      (js-setf (entity animation loop) js:false))
+  ((ffi:ref entity animation play) #janim blend-speed))
+
 (update-dt)
 

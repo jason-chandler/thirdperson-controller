@@ -1,14 +1,18 @@
 (in-package :thirdperson-controller)
 
 (defparameter *rotation-helper* (ffi:new (ffi:ref "pc.Entity") #j"MODEL-AXIS"))
+(defparameter model-entity (ffi:new (ffi:ref "pc.Entity") #j"MODEL-OFFSET"))
+
 (defparameter player-model (ffi:new (ffi:ref "pc.Entity") #j"PLAYER-MODEL"))
 (defparameter *rotation-factor* 5)
 
 (defun set-up-model (player asset-path)
+  ((ffi:ref player remove-component) #j"model")
   (let ((camera (find-by-name "CAMERA")))
     ((ffi:ref player add-child) player-model)
     ((ffi:ref player add-child) *rotation-helper*)
-    (load-glb player-model asset-path js:true)
+    ((ffi:ref player-model add-child) model-entity)
+    (load-glb model-entity asset-path js:true)
     (labels ((update-movement (dt &rest _)
                (let* ((forward (ffi:ref camera forward))
                      (right (ffi:ref camera right))
@@ -39,3 +43,5 @@
                        ((ffi:ref player-model set-rotation) rot))))))
       (add-to-update :model-rotate #'update-movement))))
 
+((ffi:ref model-entity set-local-euler-angles) 0 -90 0)
+((ffi:ref model-entity set-local-position) 3.7 2.3 0)

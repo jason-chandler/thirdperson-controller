@@ -6,5 +6,6 @@
                (:file "lib")
                (:file "thirdperson-camera")
                (:file "thirdperson-model")
+               (:file "thirdperson-animation")
                (:file "main"))
   :depends-on ("react-utilities"))

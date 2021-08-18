@@ -7,7 +7,8 @@
   (jsx (:h1 () "")))
 
 (defparameter player (find-by-name "PLAYER"))
-(set-up-model player "./files/assets/testbox.glb")
+(set-up-model player "./files/assets/rion.glb")
+(set-up-animations player model-entity)
 
 (defparameter light (find-by-name "LIGHT"))
 (js-setf (light light shadow-distance) 100
@@ -18,6 +19,11 @@
          (player rigidbody restitution) 0.1)
 
 (defparameter cam (find-by-name "CAMERA"))
+(let ((cam-parent (ffi:ref cam parent)))
+  ((ffi:ref cam reparent) js:null)
+  ((ffi:ref cam set-local-position) 0 0.6 10)
+  ((ffi:ref cam reparent) cam-parent))
 (set-up-camera cam)
+
 
 (setup '<app> "root" :remote-eval t)
