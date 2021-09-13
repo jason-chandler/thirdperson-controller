@@ -24,30 +24,32 @@
                 (< z 1)
                 (> z -1))))
            (update-animation (dt &rest _)
-             (cond 
-               ((and (not *jump-init*) *jumping* (not (current-animation-p 'jump))) 
-                (progn 
-                  (setf *jump-init* t)
-                  (do-anim player-model-entity "rion.glb/animation/2" 0.4 nil)
-                  (js:set-timeout ((ffi:ref (lambda () (setf *jump-init* nil))
-                                            "bind") player-model-entity) 300)))
-               ((and (not *jump-init*) 
+             (let ((falling-p (eql (ffi:ref player on-ground) js:null)))
+               (cond 
+                 ((and (not *jump-init*) *jumping* (not (current-animation-p 'jump))) 
+                  (progn 
+                    (setf *jump-init* t)
+                    (do-anim player-model-entity "rion.glb/animation/2" 0.4 nil)
+                    (js:set-timeout ((ffi:ref (lambda () (setf *jump-init* nil))
+                                              "bind") player-model-entity) 300)))
+                 ((and (not *jump-init*) 
                        (not *jumping*)
                        (not (current-animation-p 'fall))
-                       (eql (ffi:ref player on-ground) js:null)) (progn 
+                       falling-p) (progn 
                                                                    (setf *current-animation* 'fall)
-                                                                   (do-anim player-model-entity "rion.glb/animation/3" 0.8 t)))
-               ((and (is-movement-key-pressed-p)
-                     (not (current-animation-p 'walk))) (progn
-                                                          (setf *current-animation* 'walk)
-                                                          (do-anim player-model-entity "rion.glb/animation/1" 0.5 t)))
-               ((and 
-                 (stopped-p)
-                 (not (is-movement-key-pressed-p))
-                 (not (current-animation-p 'idle))
-                 (ffi:ref player on-ground)) 
-                (progn 
-                  (setf *current-animation* 'idle)
-                  (do-anim player-model-entity "rion.glb/animation/0" 0.2 t))))))
+                                                                   (do-anim player-model-entity "rion.glb/animation/3" 0.5 t)))
+                 ((and (is-movement-key-pressed-p)
+                       (not (current-animation-p 'walk))
+                       (not falling-p)) (progn
+                                                                         (setf *current-animation* 'walk)
+                                                                         (do-anim player-model-entity "rion.glb/animation/1" 0.5 t)))
+                 ((and 
+                   (stopped-p)
+                   (not (is-movement-key-pressed-p))
+                   (not (current-animation-p 'idle))
+                   (not falling-p)) 
+                  (progn 
+                    (setf *current-animation* 'idle)
+                    (do-anim player-model-entity "rion.glb/animation/0" 0.2 t)))))))
     (add-to-update :anim #'update-animation)))
 
