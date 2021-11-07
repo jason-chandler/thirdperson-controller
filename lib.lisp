@@ -153,11 +153,17 @@
   `(eql ((ffi:ref js:pc app keyboard is-pressed) (ffi:ref js:pc ,key)) 
         js:true))
 
+(defun null-p (comp)
+  (if (or (equal js:null comp) (equal js:undefined comp))
+      t))
+
 (defun do-anim (entity anim blend-speed loop-animation-p)
-  (if loop-animation-p
-      (js-setf (entity animation loop) js:true)
-      (js-setf (entity animation loop) js:false))
-  ((ffi:ref entity animation play) #janim blend-speed))
+  (when (not (null-p (ffi:ref entity animation)))
+      (if (and loop-animation-p (not (equal (ffi:ref entity animation) js:undefined)))
+          (js-setf (entity animation loop) js:true)
+          (js-setf (entity animation loop) js:false))
+      (when (not (null-p (ffi:ref entity animation play)))
+          ((ffi:ref entity animation play) #janim blend-speed))))
 
 (update-dt)
 

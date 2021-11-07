@@ -6,6 +6,8 @@
 (define-react-component <app> ()
   (jsx (:h1 () "")))
 
+(load-static "./files/assets/tiny-maze.glb" t)
+
 (defparameter player (find-by-name "PLAYER"))
 (set-up-model player "./files/assets/rion.glb")
 (set-up-animations player model-entity)
@@ -25,5 +27,6 @@
   ((ffi:ref cam reparent) cam-parent))
 (set-up-camera cam)
 
-
 (setup '<app> "root" :remote-eval t)
+
+(teleport (find-by-name "PLAYER") :x 0 :y 10 :z 0 :rot-x 0 :rot-y 0 :rot-z 0 :keep-vel nil)

@@ -36,13 +36,13 @@
                        (not *jumping*)
                        (not (current-animation-p 'fall))
                        falling-p) (progn 
-                                                                   (setf *current-animation* 'fall)
-                                                                   (do-anim player-model-entity "rion.glb/animation/3" 0.5 t)))
+                                    (setf *current-animation* 'fall)
+                                    (do-anim player-model-entity "rion.glb/animation/3" 0.5 t)))
                  ((and (is-movement-key-pressed-p)
                        (not (current-animation-p 'walk))
                        (not falling-p)) (progn
-                                                                         (setf *current-animation* 'walk)
-                                                                         (do-anim player-model-entity "rion.glb/animation/1" 0.5 t)))
+                                          (setf *current-animation* 'walk)
+                                          (do-anim player-model-entity "rion.glb/animation/1" 0.5 t)))
                  ((and 
                    (stopped-p)
                    (not (is-movement-key-pressed-p))
