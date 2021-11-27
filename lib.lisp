@@ -4,6 +4,15 @@
 
 (defparameter *update-list* nil)
 
+;; Paul Graham helper function
+(defun mkstr (&rest args)
+  (with-output-to-string (s)
+    (dolist (a args) (princ a s))))
+
+;; Paul Graham helper function
+(defun symb (&rest args)
+  (values (intern (apply #'mkstr args))))
+
 (defun create-script (script-name)
   (js:pc.create-script #jscript-name))
 
@@ -153,16 +162,16 @@
   `(eql ((ffi:ref js:pc app keyboard is-pressed) (ffi:ref js:pc ,key)) 
         js:true))
 
-(defun null-p (comp)
+(defun nullp (comp)
   (if (or (equal js:null comp) (equal js:undefined comp))
       t))
 
 (defun do-anim (entity anim blend-speed loop-animation-p)
-  (when (not (null-p (ffi:ref entity animation)))
+  (when (not (nullp (ffi:ref entity animation)))
       (if (and loop-animation-p (not (equal (ffi:ref entity animation) js:undefined)))
           (js-setf (entity animation loop) js:true)
           (js-setf (entity animation loop) js:false))
-      (when (not (null-p (ffi:ref entity animation play)))
+      (when (not (nullp (ffi:ref entity animation play)))
           ((ffi:ref entity animation play) #janim blend-speed))))
 
 (update-dt)

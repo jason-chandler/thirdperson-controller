@@ -44,4 +44,5 @@
       (add-to-update :model-rotate #'update-movement))))
 
 ((ffi:ref model-entity set-local-euler-angles) 0 -90 0)
-((ffi:ref model-entity set-local-position) 3.7 2.3 0)
+((ffi:ref model-entity set-local-position) 3.7 2.8 0)
+

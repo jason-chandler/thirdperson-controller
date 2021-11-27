@@ -1,6 +1,7 @@
 ;; -*- mode:lisp -*-
 
 (defsystem "thirdperson-controller"
+  :source-map t
   :serial t
   :components ((:file "package")
                (:file "lib")

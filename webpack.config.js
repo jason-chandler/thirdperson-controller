@@ -1,3 +1,4 @@
+const webpack = require('webpack');
 const path = require('path');
 const fs = require('fs');
 
@@ -12,6 +13,21 @@ module.exports = {
     modules: [
       'node_modules',
       fs.readFileSync('.valtan-path', 'utf-8')
+    ]
+  },
+  plugins: [
+        new webpack.DefinePlugin({
+            'process.env.NODE_ENV': JSON.stringify('development')
+        })
+    ],
+  devtool: 'inline-source-map',
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        use: ["source-map-loader"],
+        enforce: "pre"
+      }
     ]
   }
 };

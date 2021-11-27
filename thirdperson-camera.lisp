@@ -5,7 +5,7 @@
 (defparameter *movement-speed* 0.15)
 (defparameter *gravity* 9.8)
 (defparameter *jumping* nil)
-(defparameter *jump-force* 16)
+(defparameter *jump-force* 8)
 (defparameter *ground-check-ray* (vec3 :y -1.2))
 (defparameter *ray-end* (vec3))
 (defparameter *ground-normal* (vec3))
