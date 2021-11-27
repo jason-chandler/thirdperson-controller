@@ -1,8 +1,7 @@
 (in-package :thirdperson-controller)
 
 (defclass js-object () 
-  ((struct-name :initarg :struct-name :initform "JS-OBJECT" :accessor struct-name)
-   (foreign-ref :initarg :foreign-ref :initform '() :accessor foreign-ref) 
+  ((foreign-ref :initarg :foreign-ref :accessor foreign-ref) 
    (foreign-slots :initarg :foreign-slots :initform '() :accessor foreign-slots) 
    (foreign-methods :initarg :foreign-methods :initform '() :accessor foreign-methods)))
 
@@ -24,21 +23,23 @@
   (apply (ffi:ref (getf (foreign-methods obj) fun-sym)) args))
 
 (defmacro def-foreign-method (obj fun-name method-ref)
-  (let ((obj-val (gensym)))
+  (let ((class (class-name (class-of (symbol-value obj)))))
     `(progn 
        (def-foreign-method-impl ,obj ',fun-name ,method-ref)
-       (let ((,obj-val ,obj))
-         (defmethod ,fun-name ((obj js-object) &rest args)
-           (call-foreign-method obj ',fun-name args))))))
+       (defmethod ,fun-name ((obj ,class) &rest args)
+         (call-foreign-method obj ',fun-name args)))))
 
-;;(defparameter test-obj (make-instance 'js-object))
+(defparameter test-obj (make-instance 'js-object))
 ;;(defparameter test-obj2 (make-instance 'js-object))
 
-;;(def-foreign-method test-obj test-method (ffi:ref js:console log))
+((ffi:ref js:console log) (class-name (class-of test-obj)))
+(princ (class-name (class-of test-obj)))
+
+(def-foreign-method test-obj test-method (ffi:ref js:console log))
 
 ;;((ffi:ref js:console log) (symbol-value (intern "TEST-OBJ")))
 
-;;(test-method test-obj #j"test")
+(test-method test-obj #j"test")
 
 
 
