@@ -8,14 +8,12 @@
 (defgeneric def-foreign-method-impl (obj fun-sym method-ref))
 
 (defmethod def-foreign-method-impl ((obj js-object) fun-sym (method-ref function))
-  (push method-ref (foreign-methods obj))
-  (push fun-sym (foreign-methods obj)))
+  (setf (getf (foreign-methods obj) fun-sym) method-ref))
 
 (defgeneric def-foreign-slot-impl (obj slot-sym slot-ref))
 
 (defmethod def-foreign-slot-impl ((obj js-object) slot-sym slot-ref)
-  (push slot-ref (foreign-slots obj))
-  (push slot-sym (foreign-slots obj)))
+  (setf (getf (foreign-slots obj) slot-sym) slot-ref))
 
 (defgeneric call-foreign-method (obj fun-sym args))
 
@@ -31,17 +29,18 @@
   (let ((class (class-name (class-of (symbol-value obj)))))
     `(progn 
        (def-foreign-method-impl ,obj ',fun-name ,method-ref)
-       (defmethod ,fun-name ((obj ,class) &rest args)
-         (call-foreign-method obj ',fun-name args)))))
+       (defmethod ,fun-name ((obj (eql ,obj)) &rest args)
+         (call-foreign-method (symbol-value obj) ',fun-name args)))))
 
 (defmacro def-foreign-slot (obj slot-name slot-ref)
-  (let ((class (class-name (class-of (symbol-value obj)))))
-    `(progn 
-       (def-foreign-slot-impl ,obj ',slot-name ,slot-ref)
-       (defmethod ,slot-name ((obj ,class))
-         (get-foreign-slot obj ',slot-name))
-       (defmethod (setf ,slot-name) (new-value (obj ,class))
-         (ffi:set ,slot-ref new-value)))))
+  `(progn 
+     (def-foreign-slot-impl ,obj ',slot-name ,slot-ref)
+     (defmethod ,slot-name ((obj (eql ,obj)))
+       (get-foreign-slot (symbol-value obj) ',slot-name))
+     (defmethod (setf ,slot-name) (new-value (obj (eql ,obj)))
+       (ffi:set ,slot-ref new-value)
+       (remf (foreign-slots (symbol-value obj)) ',slot-name)
+       (setf (getf (foreign-slots (symbol-value obj)) ',slot-name) new-value))))
 
 ;; usage sample
 
@@ -50,10 +49,12 @@
 
 ;; use ffi:ref to get a function reference and then it can be used as a method on that object
 ;; (def-foreign-method test-obj log (ffi:ref js:console log))
+;; (log 'test-obj #j"test")
 
 ;; you can also use (foreign-ref obj) as the ffi:ref parent to get the slot or method from the object
 ;; (def-foreign-slot test-obj collision (ffi:ref (foreign-ref test-obj) "collision"))
+;; (log 'test-obj (collision 'test-obj))
 
 ;; slots added this way are setfable
-;; (setf (collision test-obj) #j"it's broken now")
-
+;; (setf (collision 'test-obj) #j"it's broken now")
+;; (log 'test-obj (collision 'test-obj))
