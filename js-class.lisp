@@ -42,6 +42,10 @@
        (defmethod (setf ,slot-name) (new-value (obj (eql ,obj)))
          (ffi:set ,slot-ref new-value)))))
 
+(defmacro def-direct-slot (obj slot-name)
+  `(progn
+     (def-foreign-slot ,obj ,slot-name ,(list 'ffi:ref (list 'foreign-ref obj) slot-name))))
+
 ;; usage sample
 
 ;; new instance, foreign-ref is a (ffi:ref) object
@@ -58,3 +62,7 @@
 ;; slots added this way are setfable
 ;; (setf (collision 'test-obj) #j"it's broken now")
 ;; (log 'test-obj (collision 'test-obj))
+
+;; def-direct-slot will expand to def-foreign-slot with a slot that's directly attached to the foreign reference
+;; (def-direct-slot player1 euler-angles)
+;; (euler-angles 'player1)
