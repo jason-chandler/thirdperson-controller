@@ -8,19 +8,24 @@
 (defgeneric def-foreign-method-impl (obj fun-sym method-ref))
 
 (defmethod def-foreign-method-impl ((obj js-object) fun-sym (method-ref function))
-  ((ffi:ref js:console log) #j"pushing method-ref ")
-  ((ffi:ref js:console log) method-ref)
-  ((ffi:ref js:console log) fun-sym)
-  ((ffi:ref js:console log) obj)
   (push method-ref (foreign-methods obj))
   (push fun-sym (foreign-methods obj)))
+
+(defgeneric def-foreign-slot-impl (obj slot-sym slot-ref))
+
+(defmethod def-foreign-slot-impl ((obj js-object) slot-sym slot-ref)
+  (push slot-ref (foreign-slots obj))
+  (push slot-sym (foreign-slots obj)))
 
 (defgeneric call-foreign-method (obj fun-sym args))
 
 (defmethod call-foreign-method ((obj js-object) fun-sym args)
-  ((ffi:ref js:console log) #j"calling foreign method with: ")
-  ((ffi:ref js:console log) obj)
   (apply (ffi:ref (getf (foreign-methods obj) fun-sym)) args))
+
+(defgeneric get-foreign-slot (obj slot-sym))
+
+(defmethod get-foreign-slot ((obj js-object) slot-sym)
+  (ffi:ref (getf (foreign-slots obj) slot-sym)))
 
 (defmacro def-foreign-method (obj fun-name method-ref)
   (let ((class (class-name (class-of (symbol-value obj)))))
@@ -29,19 +34,26 @@
        (defmethod ,fun-name ((obj ,class) &rest args)
          (call-foreign-method obj ',fun-name args)))))
 
-(defparameter test-obj (make-instance 'js-object))
-;;(defparameter test-obj2 (make-instance 'js-object))
+(defmacro def-foreign-slot (obj slot-name slot-ref)
+  (let ((class (class-name (class-of (symbol-value obj)))))
+    `(progn 
+       (def-foreign-slot-impl ,obj ',slot-name ,slot-ref)
+       (defmethod ,slot-name ((obj ,class))
+         (get-foreign-slot obj ',slot-name))
+       (defmethod (setf ,slot-name) (new-value (obj ,class))
+         (ffi:set ,slot-ref new-value)))))
 
-((ffi:ref js:console log) (class-name (class-of test-obj)))
-(princ (class-name (class-of test-obj)))
+;; usage sample
 
-(def-foreign-method test-obj test-method (ffi:ref js:console log))
+;; new instance, foreign-ref is a (ffi:ref) object
+;; (defparameter test-obj (make-instance 'js-object :foreign-ref player))
 
-;;((ffi:ref js:console log) (symbol-value (intern "TEST-OBJ")))
+;; use ffi:ref to get a function reference and then it can be used as a method on that object
+;; (def-foreign-method test-obj log (ffi:ref js:console log))
 
-(test-method test-obj #j"test")
+;; you can also use (foreign-ref obj) as the ffi:ref parent to get the slot or method from the object
+;; (def-foreign-slot test-obj collision (ffi:ref (foreign-ref test-obj) "collision"))
 
-
-
-
+;; slots added this way are setfable
+;; (setf (collision test-obj) #j"it's broken now")
 
