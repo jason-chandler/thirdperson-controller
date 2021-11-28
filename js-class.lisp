@@ -23,7 +23,7 @@
 (defgeneric get-foreign-slot (obj slot-sym))
 
 (defmethod get-foreign-slot ((obj js-object) slot-sym)
-  (ffi:ref (getf (foreign-slots obj) slot-sym)))
+  (funcall (getf (foreign-slots obj) slot-sym)))
 
 (defmacro def-foreign-method (obj fun-name method-ref)
   (let ((class (class-name (class-of (symbol-value obj)))))
@@ -33,14 +33,14 @@
          (call-foreign-method (symbol-value obj) ',fun-name args)))))
 
 (defmacro def-foreign-slot (obj slot-name slot-ref)
-  `(progn 
-     (def-foreign-slot-impl ,obj ',slot-name ,slot-ref)
-     (defmethod ,slot-name ((obj (eql ,obj)))
-       (get-foreign-slot (symbol-value obj) ',slot-name))
-     (defmethod (setf ,slot-name) (new-value (obj (eql ,obj)))
-       (ffi:set ,slot-ref new-value)
-       (remf (foreign-slots (symbol-value obj)) ',slot-name)
-       (setf (getf (foreign-slots (symbol-value obj)) ',slot-name) new-value))))
+  (let ((gen-mac (gensym)))
+    `(progn 
+       (def-foreign-slot-impl ,obj ',slot-name (lambda () (macrolet ((,gen-mac () ',slot-ref))
+                                                            (,gen-mac))))
+       (defmethod ,slot-name ((obj (eql ,obj)))
+         (get-foreign-slot (symbol-value obj) ',slot-name))
+       (defmethod (setf ,slot-name) (new-value (obj (eql ,obj)))
+         (ffi:set ,slot-ref new-value)))))
 
 ;; usage sample
 
