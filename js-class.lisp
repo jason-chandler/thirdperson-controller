@@ -1,5 +1,26 @@
 (in-package :thirdperson-controller)
 
+(defmacro create-method (obj path)
+  (labels ((create-apply (obj path)
+             `(ffi:ref ,obj ,@path apply))
+           (create-this (obj path)
+             `(ffi:ref ,obj ,@(reverse (cdr (reverse path))))))
+    `(lambda (&rest args)
+       (,(create-apply obj path) ,(create-this obj path) args))))
+
+(defmacro create-method (obj path)
+  (labels ((create-apply (obj path)
+             `(ffi:ref ,obj ,@path apply))
+           (create-this (obj path)
+             (if (> (length path) 1)
+                 `(ffi:ref ,obj ,@(reverse (cdr (reverse path))))
+                 `(ffi:ref ,obj))))
+    `(lambda (&rest args)
+       (format t ',(create-apply obj path))
+       (,(create-apply obj path) ,(create-this obj path) args))))
+
+
+
 ;; "use ffi:ref to get a function reference and then it can be used as a method on that object"
 (defclass js-object () 
   ((foreign-ref :initarg :foreign-ref :accessor foreign-ref) 
@@ -8,7 +29,7 @@
 
 (defgeneric def-foreign-method-impl (obj fun-sym method-ref))
 
-(defmethod def-foreign-method-impl ((obj js-object) fun-sym (method-ref function))
+(defmethod def-foreign-method-impl ((obj js-object) fun-sym method-ref)
   (setf (getf (foreign-methods obj) fun-sym) method-ref))
 
 (defgeneric def-foreign-slot-impl (obj slot-sym slot-ref))
@@ -18,8 +39,8 @@
 
 (defgeneric call-foreign-method (obj fun-sym args))
 
-(defmethod call-foreign-method ((obj js-object) fun-sym args)
-  (apply (ffi:ref (getf (foreign-methods obj) fun-sym)) args))
+(defmacro resolve-list (method-list fun-sym)
+  `(,(getf method-list fun-sym)))
 
 (defgeneric get-foreign-slot (obj slot-sym))
 
@@ -29,9 +50,11 @@
 (defmacro def-foreign-method (obj fun-name method-ref)
   "use ffi:ref to get a function reference and then it can be used as a method on that object"
   `(progn 
-     (def-foreign-method-impl ,obj ',fun-name ,method-ref)
+     (def-foreign-method-impl ,obj ',fun-name (create-method ,obj ,method-ref))
      (defmethod ,fun-name ((obj (eql ,obj)) &rest args)
-       (call-foreign-method (symbol-value obj) ',fun-name args))))
+       (funcall (getf (foreign-methods (symbol-value obj)) ',fun-name) (foreign-ref (symbol-value obj))
+                args))))
+
 
 (defmacro def-foreign-slot (obj slot-name slot-ref)
   "use ffi:ref to get a slot reference and then it can be used as a setfable slot on that object"
@@ -57,16 +80,38 @@
       `(def-foreign-slot ,obj ,slot-name ,(list 'ffi:ref (list 'foreign-ref obj) slot-path))))
 
 (defmacro def-direct-method (obj method-path)
-  "def-direct-method will expand to def-foreign-method with a method that's directly attached to the foreign reference"
-  (if (consp method-path)
-      `(def-foreign-method ,obj ,(car (last method-path)) ,(cons 'ffi:ref (cons (list 'foreign-ref obj) method-path)))
-      `(def-foreign-method ,obj ,method-path ,(list 'ffi:ref (list 'foreign-ref obj) method-path))))
+  (let* ((method-name (car (last method-path)))
+         (method-list (if (consp method-path) 
+                          (cons 'ffi:ref (cons (list 'foreign-ref obj) method-path))
+                          (list 'ffi:ref (list 'foreign-ref obj) method-path))))
+    `(def-foreign-method ,obj ,method-name ,method-list)))
 
 (defmacro def-ndirect-method (obj method-name method-path)
-  "calling def-ndirect-slot instead of def-direct allows you to name the resulting accessor method"
-  (if (consp method-path)
-      `(def-foreign-method ,obj ,method-name ,(cons 'ffi:ref (cons (list 'foreign-ref obj) method-path)))
-      `(def-foreign-method ,obj ,method-name ,(list 'ffi:ref (list 'foreign-ref obj) method-path))))
+  `(def-foreign-method ,obj ,method-name ,method-list))
+
+        ;; (this (if (consp method-path)
+        ;;           (reverse (cdr (reverse method-list)))
+        ;;           (list 'foreign-ref obj)))
+
+
+;; (defparameter test-fun (create-method player (rigidbody entity get-guid)))
+
+
+(defparameter test-obj (make-instance 'js-object :foreign-ref player))
+(def-foreign-method test-obj get-guid (get-guid))
+
+
+;; (js:console.log ((ffi:ref player rigidbody entity get-guid apply) (ffi:ref player rigidbody entity)))
+
+;; (js:console.log (funcall test-fun))
+
+;; (merge 'list '(rigidbody _parent get-guid) (cons 'bind '(rigidbody _parent)) (lambda (x y) nil))
+;; (defmacro def-ndirect-method (obj method-name method-path)
+;;   "calling def-ndirect-slot instead of def-direct allows you to name the resulting accessor method"
+;;   (if (consp method-path)
+;;       `(def-foreign-method ,obj ,method-name ,(cons 'ffi:ref (cons (list 'foreign-ref obj) method-path))
+;;          ,(reverse (cdr (reverse (cons 'ffi:ref (cons (list 'foreign-ref obj) method-path))))))
+;;       `(def-foreign-method ,obj ,method-name ,(list 'ffi:ref (list 'foreign-ref obj) method-path))))
 
 
 ;; usage sample
