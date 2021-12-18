@@ -4,22 +4,14 @@
   (labels ((create-apply (obj path)
              `(ffi:ref ,obj ,@path apply))
            (create-this (obj path)
-             `(ffi:ref ,obj ,@(reverse (cdr (reverse path))))))
-    `(lambda (&rest args)
-       (,(create-apply obj path) ,(create-this obj path) args))))
-
-(defmacro create-method (obj path)
-  (labels ((create-apply (obj path)
-             `(ffi:ref ,obj ,@path apply))
-           (create-this (obj path)
              (if (> (length path) 1)
                  `(ffi:ref ,obj ,@(reverse (cdr (reverse path))))
                  `(ffi:ref ,obj))))
-    `(lambda (&rest args)
-       (format t ',(create-apply obj path))
-       (,(create-apply obj path) ,(create-this obj path) args))))
-
-
+    `(lambda (args)
+       ;; Some kind of odd bug turns up with return retrieval for macros nested in CLOS methods
+       ;; workaround is to use let binding
+       (let ((answer (,(create-apply obj path) ,(create-this obj path) (apply #'ffi:array args))))
+         answer))))
 
 ;; "use ffi:ref to get a function reference and then it can be used as a method on that object"
 (defclass js-object () 
@@ -50,10 +42,9 @@
 (defmacro def-foreign-method (obj fun-name method-ref)
   "use ffi:ref to get a function reference and then it can be used as a method on that object"
   `(progn 
-     (def-foreign-method-impl ,obj ',fun-name (create-method ,obj ,method-ref))
+     (def-foreign-method-impl ,obj ',fun-name (create-method (foreign-ref ,obj) ,method-ref))
      (defmethod ,fun-name ((obj (eql ,obj)) &rest args)
-       (funcall (getf (foreign-methods (symbol-value obj)) ',fun-name) (foreign-ref (symbol-value obj))
-                args))))
+       (funcall (getf (foreign-methods (symbol-value obj)) ',fun-name) args))))
 
 
 (defmacro def-foreign-slot (obj slot-name slot-ref)
@@ -89,38 +80,14 @@
 (defmacro def-ndirect-method (obj method-name method-path)
   `(def-foreign-method ,obj ,method-name ,method-list))
 
-        ;; (this (if (consp method-path)
-        ;;           (reverse (cdr (reverse method-list)))
-        ;;           (list 'foreign-ref obj)))
-
-
-;; (defparameter test-fun (create-method player (rigidbody entity get-guid)))
-
-
-(defparameter test-obj (make-instance 'js-object :foreign-ref player))
-(def-foreign-method test-obj get-guid (get-guid))
-
-
-;; (js:console.log ((ffi:ref player rigidbody entity get-guid apply) (ffi:ref player rigidbody entity)))
-
-;; (js:console.log (funcall test-fun))
-
-;; (merge 'list '(rigidbody _parent get-guid) (cons 'bind '(rigidbody _parent)) (lambda (x y) nil))
-;; (defmacro def-ndirect-method (obj method-name method-path)
-;;   "calling def-ndirect-slot instead of def-direct allows you to name the resulting accessor method"
-;;   (if (consp method-path)
-;;       `(def-foreign-method ,obj ,method-name ,(cons 'ffi:ref (cons (list 'foreign-ref obj) method-path))
-;;          ,(reverse (cdr (reverse (cons 'ffi:ref (cons (list 'foreign-ref obj) method-path))))))
-;;       `(def-foreign-method ,obj ,method-name ,(list 'ffi:ref (list 'foreign-ref obj) method-path))))
-
 
 ;; usage sample
 
 ;; new instance, foreign-ref is a (ffi:ref) object
-;; (defparameter test-obj (make-instance 'js-object :foreign-ref player))
+;; (defparameter test-obj (make-instance 'js-object :foreign-ref js:console))
 
 ;; use ffi:ref to get a function reference and then it can be used as a method on that object
-;; (def-foreign-method test-obj log (ffi:ref js:console log))
+;; (def-foreign-method test-obj log (log))
 ;; (log 'test-obj #j"test")
 
 ;; you can also use (foreign-ref obj) as the ffi:ref parent to get the slot or method from the object
