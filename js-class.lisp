@@ -13,6 +13,18 @@
        (let ((answer (,(create-apply obj path) ,(create-this obj path) (apply #'ffi:array args))))
          answer))))
 
+ (defmacro create-slot (obj path)
+   (labels ((create-getter (obj path)
+              `(ffi:ref ,obj ,@path)))
+     `(lambda ()
+        ,(create-getter obj path))))
+
+(defmacro create-slot-setter (obj path)
+  (labels ((the-slot (obj path)
+              `(ffi:ref ,obj ,@path)))
+     `(lambda (val)
+        (ffi:set ,(the-slot obj path) val))))
+
 ;; "use ffi:ref to get a function reference and then it can be used as a method on that object"
 (defclass js-object () 
   ((foreign-ref :initarg :foreign-ref :accessor foreign-ref) 
@@ -29,15 +41,10 @@
 (defmethod def-foreign-slot-impl ((obj js-object) slot-sym slot-ref)
   (setf (getf (foreign-slots obj) slot-sym) slot-ref))
 
-(defgeneric call-foreign-method (obj fun-sym args))
-
-(defmacro resolve-list (method-list fun-sym)
-  `(,(getf method-list fun-sym)))
-
 (defgeneric get-foreign-slot (obj slot-sym))
 
 (defmethod get-foreign-slot ((obj js-object) slot-sym)
-  (funcall (getf (foreign-slots obj) slot-sym)))
+  (getf (foreign-slots obj) slot-sym))
 
 (defmacro def-foreign-method (obj fun-name method-ref)
   "use ffi:ref to get a function reference and then it can be used as a method on that object"
@@ -46,68 +53,30 @@
      (defmethod ,fun-name ((obj (eql ,obj)) &rest args)
        (funcall (getf (foreign-methods (symbol-value obj)) ',fun-name) args))))
 
-
 (defmacro def-foreign-slot (obj slot-name slot-ref)
   "use ffi:ref to get a slot reference and then it can be used as a setfable slot on that object"
-  (let ((gen-mac (gensym)))
-    `(progn 
-       (def-foreign-slot-impl ,obj ',slot-name (lambda () (macrolet ((,gen-mac () ',slot-ref))
-                                                            (,gen-mac))))
-       (defmethod ,slot-name ((obj (eql ,obj)))
-         (get-foreign-slot (symbol-value obj) ',slot-name))
-       (defmethod (setf ,slot-name) (new-value (obj (eql ,obj)))
-         (ffi:set ,slot-ref new-value)))))
-
-(defmacro def-direct-slot (obj slot-path)
-  "def-direct-slot will expand to def-foreign-slot with a slot that's directly attached to the foreign reference"
-  (if (consp slot-path)
-      `(def-foreign-slot ,obj ,(car (last slot-path)) ,(cons 'ffi:ref (cons (list 'foreign-ref obj) slot-path)))
-      `(def-foreign-slot ,obj ,slot-path ,(list 'ffi:ref (list 'foreign-ref obj) slot-path))))
-
-(defmacro def-ndirect-slot (obj slot-name slot-path)
-  "calling def-ndirect-slot instead of def-direct allows you to name the resulting accessor method"
-  (if (consp slot-path)
-      `(def-foreign-slot ,obj ,slot-name ,(cons 'ffi:ref (cons (list 'foreign-ref obj) slot-path)))
-      `(def-foreign-slot ,obj ,slot-name ,(list 'ffi:ref (list 'foreign-ref obj) slot-path))))
-
-(defmacro def-direct-method (obj method-path)
-  (let* ((method-name (car (last method-path)))
-         (method-list (if (consp method-path) 
-                          (cons 'ffi:ref (cons (list 'foreign-ref obj) method-path))
-                          (list 'ffi:ref (list 'foreign-ref obj) method-path))))
-    `(def-foreign-method ,obj ,method-name ,method-list)))
-
-(defmacro def-ndirect-method (obj method-name method-path)
-  `(def-foreign-method ,obj ,method-name ,method-list))
-
+  `(progn 
+     (def-foreign-slot-impl ,obj ',slot-name (create-slot (foreign-ref ,obj) ,slot-ref))
+     (defmethod ,slot-name ((obj (eql ,obj)))
+       (funcall (get-foreign-slot (symbol-value obj) ',slot-name)))
+     (defmethod (setf ,slot-name) (new-value (obj (eql ,obj)))
+       (funcall (create-slot-setter (foreign-ref (symbol-value obj)) ,slot-ref) new-value))))
 
 ;; usage sample
 
-;; new instance, foreign-ref is a (ffi:ref) object
-;; (defparameter test-obj (make-instance 'js-object :foreign-ref js:console))
+;; New instance, foreign-ref is a (ffi:ref) object
+;; (defparameter test-console (make-instance 'js-object :foreign-ref js:console))
+;; (defparameter test-player (make-instance 'js-object :foreign-ref (find-by-name "PLAYER")))
 
-;; use ffi:ref to get a function reference and then it can be used as a method on that object
-;; (def-foreign-method test-obj log (log))
-;; (log 'test-obj #j"test")
 
-;; you can also use (foreign-ref obj) as the ffi:ref parent to get the slot or method from the object
-;; (def-foreign-slot test-obj collision (ffi:ref (foreign-ref test-obj) "collision"))
-;; (log 'test-obj (collision 'test-obj))
+;; Call define as: (def-foreign-method js-obj name-of-new-generic-function (path from foreign-ref down to child fun)
+;; (def-foreign-method test-console log (log))
+;; (log 'test-console #j"test")
 
-;; slots added this way are setfable
-;; (setf (collision 'test-obj) #j"it's broken now")
-;; (log 'test-obj (collision 'test-obj))
+;; Definition is similar for slots
+;; (def-foreign-slot test-player collision (collision))
+;; (log 'test-console (collision 'test-player))
 
-;; def-direct-slot will expand to def-foreign-slot with a slot that's directly attached to the foreign reference
-;; (def-direct-slot player1 euler-angles)
-;; (euler-angles 'player1)
-
-;; if def-direct-slot is called with a list for the second param, it will add the slot navigating down the object
-;; (name link) will map to the slot obj.name.link and use link as the method name
-;; (def-direct-slot player1 (name link)
-;; (link 'player1)
-
-;; calling def-ndirect-slot allows you to name the resulting method
-;; (def-ndirect-slot player1 player-link (name link)
-;; (player-link 'player1)
-
+;; Slots added this way are setfable
+;; (setf (collision 'test-player) #j"it's broken now")
+;; (log 'test-console (collision 'test-player))
