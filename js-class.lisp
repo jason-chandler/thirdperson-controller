@@ -79,3 +79,9 @@
 ;; Slots added this way are setfable
 ;; (setf (collision test-player) #j"it's broken now")
 ;; (log test-console (collision test-player))
+
+;; (defgeneric initialize (obj)
+;;   (:documentation "Add foreign methods to an object based on class, returns object"))
+
+(defmethod initialize ((obj js-object))
+  obj)

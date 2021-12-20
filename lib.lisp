@@ -67,7 +67,7 @@
   (loop for script in script-list
         do ((ffi:ref ent "script" "destroy") #jscript)))
 
-(defun add-component (ent comp-type)
+(defmethod add-component ((ent t) comp-type)
   ((ffi:ref ent "addComponent") #jcomp-type))
 
 (defun find-by-name (name)
