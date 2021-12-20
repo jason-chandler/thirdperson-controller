@@ -73,8 +73,8 @@
 (defun find-by-name (name)
   (js:pc.app.root.find-by-name #jname))
 
-(defmacro add-child (obj)
-  ((ffi:ref js:pc app root add-child) obj))
+(defun add-to-root (child)
+  ((ffi:ref js:pc app root add-child) child))
 
 (defun on-collision-start (ent fun)
   ((ffi:ref ent collision on) #j"collisionstart" fun ent))

@@ -31,6 +31,10 @@
    (foreign-slots :initarg :foreign-slots :initform '() :accessor foreign-slots) 
    (foreign-methods :initarg :foreign-methods :initform '() :accessor foreign-methods)))
 
+;; if foreign-ref is used on something without one, return object as-is
+(defmethod foreign-ref ((obj t))
+  obj)
+
 (defgeneric def-foreign-method-impl (obj fun-sym method-ref))
 
 (defmethod def-foreign-method-impl ((obj js-object) fun-sym method-ref)
