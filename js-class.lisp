@@ -50,17 +50,17 @@
   "use ffi:ref to get a function reference and then it can be used as a method on that object"
   `(progn 
      (def-foreign-method-impl ,obj ',fun-name (create-method (foreign-ref ,obj) ,method-ref))
-     (defmethod ,fun-name ((obj (eql ,obj)) &rest args)
-       (funcall (getf (foreign-methods (symbol-value obj)) ',fun-name) args))))
+     (defmethod ,fun-name ((obj js-object) &rest args)
+       (funcall (getf (foreign-methods obj) ',fun-name) args))))
 
 (defmacro def-foreign-slot (obj slot-name slot-ref)
   "use ffi:ref to get a slot reference and then it can be used as a setfable slot on that object"
   `(progn 
      (def-foreign-slot-impl ,obj ',slot-name (create-slot (foreign-ref ,obj) ,slot-ref))
-     (defmethod ,slot-name ((obj (eql ,obj)))
-       (funcall (get-foreign-slot (symbol-value obj) ',slot-name)))
-     (defmethod (setf ,slot-name) (new-value (obj (eql ,obj)))
-       (funcall (create-slot-setter (foreign-ref (symbol-value obj)) ,slot-ref) new-value))))
+     (defmethod ,slot-name ((obj js-object))
+       (funcall (get-foreign-slot obj ',slot-name)))
+     (defmethod (setf ,slot-name) (new-value (obj js-object))
+       (funcall (create-slot-setter (foreign-ref obj) ,slot-ref) new-value))))
 
 ;; usage sample
 
@@ -68,15 +68,14 @@
 ;; (defparameter test-console (make-instance 'js-object :foreign-ref js:console))
 ;; (defparameter test-player (make-instance 'js-object :foreign-ref (find-by-name "PLAYER")))
 
-
 ;; Call define as: (def-foreign-method js-obj name-of-new-generic-function (path from foreign-ref down to child fun)
 ;; (def-foreign-method test-console log (log))
-;; (log 'test-console #j"test")
+;; (log test-console #j"test")
 
 ;; Definition is similar for slots
 ;; (def-foreign-slot test-player collision (collision))
-;; (log 'test-console (collision 'test-player))
+;; (log test-console (collision test-player))
 
 ;; Slots added this way are setfable
-;; (setf (collision 'test-player) #j"it's broken now")
-;; (log 'test-console (collision 'test-player))
+;; (setf (collision test-player) #j"it's broken now")
+;; (log test-console (collision test-player))
