@@ -8,6 +8,8 @@
                (:file "js-class")
                (:file "console")
                (:file "entity")
+               (:file "component")
+               (:file "gui/screen")
                (:file "controller")
                (:file "npc")
                (:file "thirdperson-camera")
