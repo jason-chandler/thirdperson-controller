@@ -1,10 +1,8 @@
 (in-package :thirdperson-controller)
 
-(defclass entity (js-object) ((name :initarg :name :accessor name)))
+(defclass entity (js-object) ())
 
 (defmethod initialize ((obj entity))
-  (when (name obj)
-      (ffi:set (ffi:ref (foreign-ref obj) name) #j(name obj)))
   (def-foreign-slot obj name (name))
   (def-foreign-method obj add-component-impl (add-component))
   (def-foreign-method obj remove-component-impl (remove-component))
@@ -18,6 +16,9 @@
 
 (defmethod remove-component ((obj entity) component-name)
   (remove-component-impl obj #jcomponent-name))
+
+(defmethod add-child ((obj t) child)
+  ((ffi:ref obj add-child) (foreign-ref child)))
 
 (defmethod add-child ((obj entity) child)
   (add-child-impl obj (foreign-ref child)))

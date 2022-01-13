@@ -1,12 +1,16 @@
 (in-package :thirdperson-controller)
 
-(defclass component (js-object) ((parent-ent :initarg :parent-ent :accessor parent-ent :initform '())
-                                 (parent-name :initarg :parent-name :accessor parent-name :initform '())))
+(defclass component (js-object) ())
 
 (defmethod initialize ((obj component))
-  (when (parent-name obj)
-    (ffi:set (ffi:ref (foreign-ref obj) entity name) #j(parent-name obj)))
-  (unless (parent-ent obj)
-    (setf (parent-ent obj) (ffi:ref (foreign-ref obj) entity)))
+  (def-foreign-method obj add-child-impl (entity add-child))
   (def-foreign-slot obj parent-name (entity name))
+  (def-foreign-slot obj parent-ent (entity))
   (call-next-method))
+
+(defmethod add-child ((obj component) child)
+  (add-child-impl obj (foreign-ref child)))qq
+
+(defmethod add-to-root ((obj component))
+  ((ffi:ref js:pc app root add-child) (foreign-ref (parent-ent obj))))
+

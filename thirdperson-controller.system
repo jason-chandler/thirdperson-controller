@@ -10,6 +10,7 @@
                (:file "entity")
                (:file "component")
                (:file "gui/screen")
+               (:file "gui/element")
                (:file "controller")
                (:file "npc")
                (:file "thirdperson-camera")

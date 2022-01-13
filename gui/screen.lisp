@@ -13,16 +13,17 @@
   (call-next-method))
 
 (let ((screen-entity (ffi:new (ffi:ref "pc.Entity"))))
+  (add-component screen-entity #j"screen")
   (defparameter *screen* (initialize (make-instance 'screen 
-                                                    :name "SCREEN"
-                                                    :foreign-ref ((ffi:ref screen-entity add-component)
-                                                                  #j"screen")))))
+                                                    :parent-name "SCREEN"
+                                                    :foreign-ref (ffi:ref screen-entity screen)))))
 
 ;; (setf (screen-space *screen*) js:true)
 
 
-;; (log console #j(name *screen-entity*))
+;; (log console #j(parent-name *screen*))
+;; (log console (ffi:ref (foreign-ref *screen*) entity name))
 ;; (log console (foreign-ref *screen*))
-(log console (foreign-ref *screen*))
-(log console (screen-space *screen*))
+;; (log console (foreign-ref *screen*))
+;; (log console (screen-space *screen*))
 
