@@ -2,5 +2,4 @@
 
 (defclass controller (entity) ())
 
-(defmethod initialize ((obj controller))
-  (call-next-method))
+(defmethod initialize-instance :after ((instance controller) &rest initargs &key &allow-other-keys))

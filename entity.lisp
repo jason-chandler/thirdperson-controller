@@ -2,14 +2,13 @@
 
 (defclass entity (js-object) ())
 
-(defmethod initialize ((obj entity))
-  (def-foreign-slot obj name (name))
-  (def-foreign-method obj add-component-impl (add-component))
-  (def-foreign-method obj remove-component-impl (remove-component))
-  (def-foreign-method obj add-child-impl (add-child))
-  (def-foreign-method obj destroy (destroy))
-  (def-foreign-method obj get-guid (get-guid))
-  (call-next-method))
+(defmethod initialize-instance :after ((instance entity) &rest initargs &key &allow-other-keys)
+  (def-foreign-slot instance name (name))
+  (def-foreign-method instance add-component-impl (add-component))
+  (def-foreign-method instance remove-component-impl (remove-component))
+  (def-foreign-method instance add-child-impl (add-child))
+  (def-foreign-method instance destroy (destroy))
+  (def-foreign-method instance get-guid (get-guid)))
 
 (defmethod add-component ((obj entity) component-name)
   (add-component-impl obj #jcomponent-name))

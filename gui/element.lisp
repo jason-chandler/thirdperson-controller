@@ -2,25 +2,22 @@
 
 (defclass element (component) ())
 
-(defmethod initialize ((obj element))
-  (def-foreign-slot obj elmnt-type (type))
-  (def-foreign-slot obj preset (preset))
-  (def-foreign-slot obj anchor (anchor))
-  (def-foreign-slot obj pivot (pivot))
-  (def-foreign-slot obj size (size))
-  (def-foreign-slot obj margin (margin))
-  (def-foreign-slot obj use-input (use-input))
-  (def-foreign-slot obj layers (layers))
-  (def-foreign-slot obj batch-group (batch-group))
-  (call-next-method))
+(defmethod initialize-instance :after ((instance element) &rest initargs &key &allow-other-keys)
+  (def-foreign-slot instance elmnt-type (type))
+  (def-foreign-slot instance preset (preset))
+  (def-foreign-slot instance anchor (anchor))
+  (def-foreign-slot instance pivot (pivot))
+  (def-foreign-slot instance size (size))
+  (def-foreign-slot instance margin (margin))
+  (def-foreign-slot instance use-input (use-input))
+  (def-foreign-slot instance layers (layers))
+  (def-foreign-slot instance batch-group (batch-group)))
 
 
 (defun add-element (parent &rest options &key elmnt-type &allow-other-keys)
   (let ((element-entity (ffi:new (ffi:ref "pc.Entity"))))
     (add-component element-entity "element")
-    (let ((element (initialize (apply #'make-instance 'element :foreign-ref (ffi:ref element-entity element) options))))
-      (when elmnt-type
-        (setf (elmnt-type element) #jelmnt-type))
+    (let ((element (apply #'make-instance 'element :foreign-ref (ffi:ref element-entity element) options)))
       (add-child parent (ffi:ref (foreign-ref element) entity))
       element)))
 
