@@ -45,9 +45,9 @@
 (defmethod def-foreign-slot-impl ((obj js-object) slot-sym slot-ref)
   (setf (getf (foreign-slots obj) slot-sym) slot-ref))
 
-(defgeneric get-foreign-slot (obj slot-sym))
+(defgeneric foreign-slot-value (obj slot-sym))
 
-(defmethod get-foreign-slot ((obj js-object) slot-sym)
+(defmethod foreign-slot-value ((obj js-object) slot-sym)
   (getf (foreign-slots obj) slot-sym))
 
 (defmacro def-foreign-method (obj fun-name method-ref)
@@ -62,7 +62,7 @@
   `(progn 
      (def-foreign-slot-impl ,obj ',slot-name (create-slot (foreign-ref ,obj) ,slot-ref))
      (defmethod ,slot-name ((obj js-object))
-       (funcall (get-foreign-slot obj ',slot-name)))
+       (funcall (foreign-slot-value obj ',slot-name)))
      (defmethod (setf ,slot-name) (new-value (obj js-object))
        (funcall (create-slot-setter (foreign-ref obj) ,slot-ref) new-value))))
 
@@ -83,6 +83,10 @@
 ;; Slots added this way are setfable
 ;; (setf (collision test-player) #j"it's broken now")
 ;; (log test-console (collision test-player))
+
+(defmacro initialize-slot (key)
+  `(if (getf initargs (intern (string ',key) "KEYWORD")) 
+       (setf (,key instance) (getf initargs (intern (string ',key) "KEYWORD")))))
 
 (defmethod initialize-instance :after ((instance js-object) &rest initargs &key &allow-other-keys)
   (setf (foreign-ref instance) (getf initargs :foreign-ref)))

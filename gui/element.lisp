@@ -11,10 +11,18 @@
   (def-foreign-slot instance margin (margin))
   (def-foreign-slot instance use-input (use-input))
   (def-foreign-slot instance layers (layers))
-  (def-foreign-slot instance batch-group (batch-group)))
+  (def-foreign-slot instance batch-group (batch-group))
+  (initialize-slot elmnt-type)
+  (initialize-slot preset)
+  (initialize-slot anchor)
+  (initialize-slot pivot)
+  (initialize-slot size)
+  (initialize-slot margin)
+  (initialize-slot use-input)
+  (initialize-slot layers)
+  (initialize-slot batch-group))
 
-
-(defun add-element (parent &rest options &key elmnt-type &allow-other-keys)
+(defun add-element (parent &rest options &key &allow-other-keys)
   (let ((element-entity (ffi:new (ffi:ref "pc.Entity"))))
     (add-component element-entity "element")
     (let ((element (apply #'make-instance 'element :foreign-ref (ffi:ref element-entity element) options)))
@@ -25,8 +33,8 @@
 
 ;; (log console (parent-name *screen*))
 ;; (log console (ffi:ref (foreign-ref *screen*) entity name))
-;; (defparameter test-element2 (add-element *screen* :elmnt-type "image"))
-
+;; (defparameter test-element2 (add-element *screen* :elmnt-type #j"image" :parent-name #j"test"))
+;; (log console (foreign-ref test-element2))
 ;; (log console #j(elmnt-type test-element2))
 ;; (log console (ffi:ref (foreign-ref test-element2) type))
 ;; (setf (elmnt-type test-element2) #j"group")

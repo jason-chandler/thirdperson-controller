@@ -4,6 +4,7 @@
 
 (defmethod initialize-instance :after ((instance entity) &rest initargs &key &allow-other-keys)
   (def-foreign-slot instance name (name))
+  (initialize-slot name)
   (def-foreign-method instance add-component-impl (add-component))
   (def-foreign-method instance remove-component-impl (remove-component))
   (def-foreign-method instance add-child-impl (add-child))

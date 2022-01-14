@@ -5,7 +5,9 @@
 (defmethod initialize-instance :after ((instance component) &rest initargs &key &allow-other-keys)
   (def-foreign-method instance add-child-impl (entity add-child))
   (def-foreign-slot instance parent-name (entity name))
-  (def-foreign-slot instance parent-ent (entity)))
+  (def-foreign-slot instance parent-ent (entity))
+  (initialize-slot parent-name)
+  (initialize-slot parent-ent))
 
 (defmethod add-child ((obj component) child)
   (add-child-impl obj (foreign-ref child)))
