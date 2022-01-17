@@ -4,7 +4,7 @@ const fs = require('fs');
 
 module.exports = {
   mode: 'none',
-  entry: './.valtan-cache/thirdperson-controller.js',
+  entry: './.valtan-cache/getting-familiar.js',
   output: {
     filename: 'main.js',
     path: path.resolve(__dirname, 'dist')

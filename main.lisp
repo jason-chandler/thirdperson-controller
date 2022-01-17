@@ -1,7 +1,7 @@
 (ffi:require js:react "react")
 (ffi:require js:react-dom "react-dom")
 
-(in-package :thirdperson-controller)
+(in-package :getting-familiar)
 
 (define-react-component <app> ()
   (jsx (:h1 () "")))
