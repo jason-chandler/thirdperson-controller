@@ -16,7 +16,7 @@
 (defun make-button (&rest options &key &allow-other-keys)
   (apply #'make-instance 'button options))
 
-;; (defparameter *another-element* (make-element :elmnt-type #j"image" :color (ffi:new js:pc.-color 1 1 1)))
+;; (defparameter *another-element* (make-element :type #j"image" :color (ffi:new js:pc.-color 1 1 1)))
 ;; (defparameter test-button (make-button :ent (ent *another-element*) :ent-name #j"other-button2"))
 
 ;; (add-child *screen* test-button)

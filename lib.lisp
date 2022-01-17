@@ -123,6 +123,14 @@
     ((ffi:ref js:pc app root add-child) ent)
     (or ent)))
 
+(defun load-static-custom (path shadows collision-path &rest args)
+  (let ((ent (ffi:new (ffi:ref "pc.Entity"))))
+    (load-glb ent path shadows args)
+    (add-mesh-collision ent collision-path)
+    ((ffi:ref ent add-component) #j"rigidbody")
+    ((ffi:ref js:pc app root add-child) ent)
+    (or ent)))
+
 (defun make-light (parent x y z type &key (r 1) (g 1) (b 1) (a 1))
   (let ((ent (ffi:new (ffi:ref "pc.Entity"))))
     ((ffi:ref parent add-child) ent)

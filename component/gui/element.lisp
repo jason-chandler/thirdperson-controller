@@ -6,7 +6,7 @@
   (setf (foreign-ref instance) (ffi:ref entity "element")))
 
 (defmethod initialize-instance :after ((instance element) &rest initargs &key &allow-other-keys)
-  (def-foreign-slot instance elmnt-type (type))
+  (def-foreign-slot instance type (type))
   (def-foreign-slot instance color (color))
   (def-foreign-slot instance preset (preset))
   (def-foreign-slot instance anchor (anchor))
@@ -16,7 +16,7 @@
   (def-foreign-slot instance use-input (use-input))
   (def-foreign-slot instance layers (layers))
   (def-foreign-slot instance batch-group (batch-group))
-  (initialize-slot elmnt-type)
+  (initialize-slot type)
   (initialize-slot color)
   (initialize-slot preset)
   (initialize-slot anchor)
@@ -32,7 +32,7 @@
     element))
 
 ;; (defparameter test-element2 (make-element  :parent *screen*
-;;                                            :elmnt-type #j"image" 
+;;                                            :type #j"image" 
 ;;                                            :ent-name #j"test"
 ;;                                            :anchor (ffi:array 0.5 0.5 0.5 0.5)
 ;;                                            :height 64
