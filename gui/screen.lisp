@@ -1,6 +1,9 @@
 (in-package :thirdperson-controller)
 
-(defclass screen (component) ())
+(defclass screen (pc-component) ())
+
+(defmethod foreign-ref-setter ((instance screen) entity)
+  (setf (foreign-ref instance) (ffi:ref entity "screen")))
 
 (defmethod initialize-instance :after ((instance screen) &rest initargs &key &allow-other-keys)
   (def-foreign-slot instance screen-space (screen-space))
@@ -18,18 +21,11 @@
   (initialize-slot scale-blend)
   (initialize-slot scale-mode))
 
-(let ((screen-entity (ffi:new (ffi:ref "pc.Entity"))))
-  (add-component screen-entity #j"screen")
-  (defparameter *screen* (make-instance 'screen 
-                                           :parent-name "SCREEN"
-                                           :foreign-ref (ffi:ref screen-entity screen))))
+ (defparameter *screen* (make-instance 'screen 
+                                       :ent-name #j"SCREEN"
+                                       :scale-mode #j"blend"
+                                       :screen-space js:true
+                                       :enabled js:true))
 
-;; (setf (screen-space *screen*) js:true)
-
-
-;; (log console #j(parent-name *screen*))
-;; (log console (ffi:ref (foreign-ref *screen*) entity name))
-;; (log console (foreign-ref *screen*))
-;; (log console (foreign-ref *screen*))
-;; (log console (screen-space *screen*))
+(add-to-root *screen*)
 

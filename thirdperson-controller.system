@@ -11,6 +11,7 @@
                (:file "component")
                (:file "gui/screen")
                (:file "gui/element")
+               (:file "gui/button")
                (:file "controller")
                (:file "npc")
                (:file "thirdperson-camera")

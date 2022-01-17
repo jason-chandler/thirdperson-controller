@@ -1,9 +1,13 @@
 (in-package :thirdperson-controller)
 
-(defclass element (component) ())
+(defclass element (pc-component) ())
+
+(defmethod foreign-ref-setter ((instance element) entity)
+  (setf (foreign-ref instance) (ffi:ref entity "element")))
 
 (defmethod initialize-instance :after ((instance element) &rest initargs &key &allow-other-keys)
   (def-foreign-slot instance elmnt-type (type))
+  (def-foreign-slot instance color (color))
   (def-foreign-slot instance preset (preset))
   (def-foreign-slot instance anchor (anchor))
   (def-foreign-slot instance pivot (pivot))
@@ -13,6 +17,7 @@
   (def-foreign-slot instance layers (layers))
   (def-foreign-slot instance batch-group (batch-group))
   (initialize-slot elmnt-type)
+  (initialize-slot color)
   (initialize-slot preset)
   (initialize-slot anchor)
   (initialize-slot pivot)
@@ -22,25 +27,16 @@
   (initialize-slot layers)
   (initialize-slot batch-group))
 
-(defun add-element (parent &rest options &key &allow-other-keys)
-  (let ((element-entity (ffi:new (ffi:ref "pc.Entity"))))
-    (add-component element-entity "element")
-    (let ((element (apply #'make-instance 'element :foreign-ref (ffi:ref element-entity element) options)))
-      (add-child parent (ffi:ref (foreign-ref element) entity))
-      element)))
+(defun make-element (&rest options &key &allow-other-keys)
+  (let ((element (apply #'make-instance 'element options)))
+    element))
 
-;; (log console (ffi:ref (foreign-ref *screen*) "entity"))
-
-;; (log console (parent-name *screen*))
-;; (log console (ffi:ref (foreign-ref *screen*) entity name))
-;; (defparameter test-element2 (add-element *screen* :elmnt-type #j"image" :parent-name #j"test"))
-;; (log console (foreign-ref test-element2))
-;; (log console #j(elmnt-type test-element2))
-;; (log console (ffi:ref (foreign-ref test-element2) type))
-;; (setf (elmnt-type test-element2) #j"group")
-;; (log console #j(elmnt-type test-element2))
-
-;; (log console (foreign-ref test-element2))
-;; (log console #j(class-name (class-of *screen*)))
-;; (log console #j(typep *screen* 'screen))
+;; (defparameter test-element2 (make-element  :parent *screen*
+;;                                            :elmnt-type #j"image" 
+;;                                            :ent-name #j"test"
+;;                                            :anchor (ffi:array 0.5 0.5 0.5 0.5)
+;;                                            :height 64
+;;                                            :pivot (ffi:array 0.5 0.5)
+;;                                            :width 175
+;;                                            :use-input js:true))
 

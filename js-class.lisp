@@ -84,9 +84,18 @@
 ;; (setf (collision test-player) #j"it's broken now")
 ;; (log test-console (collision test-player))
 
-(defmacro initialize-slot (key)
+(defmacro initialize-slot (key &optional alt)
   `(if (getf initargs (intern (string ',key) "KEYWORD")) 
-       (setf (,key instance) (getf initargs (intern (string ',key) "KEYWORD")))))
+       (setf (,key instance) (getf initargs (intern (string ',key) "KEYWORD")))
+       (if ,alt
+           (setf (,key instance) ,alt))))
 
 (defmethod initialize-instance :after ((instance js-object) &rest initargs &key &allow-other-keys)
-  (setf (foreign-ref instance) (getf initargs :foreign-ref)))
+  (if (not (slot-boundp instance 'foreign-ref))
+      (setf (foreign-ref instance) (getf initargs :foreign-ref))))
+
+;; (defmethod initialize-workaround ((instance js-object) &rest initargs &key &allow-other-keys)
+;;     (if (not (slot-boundp instance 'foreign-ref))
+;;         (setf (foreign-ref instance) (getf initargs :foreign-ref)))
+;;     instance)
+
