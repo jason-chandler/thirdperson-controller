@@ -34,8 +34,7 @@
              (let ((next-path (apply #'concatenate-string (mapcar #'concatenate-/  
                                                                   (up-dir 
                                                                    (split-/ system-path))))))
-               (setf system-path (get-system next-path))
-               system-path))
+               (setf system-path (concatenate-string "/" (get-system next-path)))))
     (lem-valtan/main:start system-path))))
 (loop for (k . f) in (list (cons "M-F" 'lem-paredit-mode:paredit-slurp) 
                            (cons "M-B" 'lem-paredit-mode:paredit-barf)
