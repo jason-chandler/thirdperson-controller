@@ -1,6 +1,6 @@
 ;; -*- mode:lisp -*-
 
-(defsystem "getting-familiar"
+(defsystem "game"
   :source-map t
   :serial t
   :components ((:file "package")
