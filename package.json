@@ -1,16 +1,16 @@
 {
-  "name": "thirdperson-controller",
+  "name": "game",
   "version": "1.0.0",
   "description": "",
   "main": "dist/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prebuild": "valtan-build thirdperson-controller.system",
+    "prebuild": "valtan-build game.system",
     "build": "webpack"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "private",
   "devDependencies": {
     "webpack": "^5.64.4",
     "webpack-cli": "^3.3.0"

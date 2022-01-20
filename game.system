@@ -1,0 +1,22 @@
+;; -*- mode:lisp -*-
+
+(defsystem "game"
+  :source-map t
+  :serial t
+  :components ((:file "package")
+               (:file "pc/lib")
+               (:file "pc/primitives")
+               (:file "js-clos/js-object")
+               (:file "js-clos/console")
+               (:file "pc/entity")
+               (:file "pc/component/component")
+               (:file "pc/component/gui/screen")
+               (:file "pc/component/gui/element")
+               (:file "pc/component/gui/button")
+               (:file "pc/controller")
+               (:file "game/npc")
+               (:file "pc/thirdperson/thirdperson-camera")
+               (:file "pc/thirdperson/thirdperson-model")
+               (:file "pc/thirdperson/thirdperson-animation")
+               (:file "main"))
+  :depends-on ("react-utilities"))

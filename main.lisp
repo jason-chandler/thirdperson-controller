@@ -1,12 +1,12 @@
 (ffi:require js:react "react")
 (ffi:require js:react-dom "react-dom")
 
-(in-package :thirdperson-controller)
+(in-package :getting-familiar)
 
 (define-react-component <app> ()
   (jsx (:h1 () "")))
 
-(load-static "./files/assets/tiny-maze.glb" t)
+(load-static-custom "./files/assets/maps/1/pokemon3.glb" t "./files/assets/maps/1/pokemon3_coll.glb")
 
 (defparameter player (find-by-name "PLAYER"))
 (set-up-model player "./files/assets/rion.glb")
