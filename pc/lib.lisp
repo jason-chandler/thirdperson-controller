@@ -48,9 +48,6 @@
                    arg-list)))
     `(or ,@(funcall #'expand-list args))))
 
-(defun vec3 (&key (x 0) (y 0) (z 0))
-  (ffi:new (ffi:ref "pc.Vec3") x y z))
-
 (defmacro js-setf (&rest forms)
   (flet ((set-pair (pair)
            (if (listp (car pair))

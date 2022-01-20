@@ -7,3 +7,6 @@
 
 ;; This serves as the original example. There should just be one of these.
 (defparameter console (make-instance 'console :foreign-ref js:console))
+
+;; (log console #j"Hello!")
+

@@ -16,13 +16,25 @@
 (defun make-button (&rest options &key &allow-other-keys)
   (apply #'make-instance 'button options))
 
-;; (defparameter *another-element* (make-element :type #j"image" :color (ffi:new js:pc.-color 1 1 1)))
-;; (defparameter test-button (make-button :ent (ent *another-element*) :ent-name #j"other-button2"))
 
-;; (add-child *screen* test-button)
+;; (defparameter button-ent (make-instance 'entity))
+;;  (defparameter *another-element* (make-element :ent button-ent
+;;                                                :type #j"image" 
+;;                                                :color (ffi:new js:pc.-color 1 1 1)
+;;                                                :anchor (ffi:array 0.5 0.5 0.5 0.5)
+;;                                                :height 40
+;;                                                :pivot (ffi:array 0.5 0.5)
+;;                                                :width 40
+;;                                                :use-input js:true))
+;;  (defparameter test-button (make-button :ent button-ent :ent-name #j"other-button2"))
 
-;; (log console (foreign-ref test-button))
-;; (log console (ffi:ref *screen*))
+;; (setf (anchor *another-element*) (vec4 :x 0.9 :y 0.01 :z 0.9 :w 0.15)
+;;       (pivot *another-element*) (vec2 :x 0.1 :y 0.1)
+;;       (width *another-element*) 30)
+
+;; (add-child *screen* button-ent)
+
+
 
 
 

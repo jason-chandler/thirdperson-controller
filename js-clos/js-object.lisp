@@ -10,8 +10,11 @@
     `(lambda (args)
        ;; Some kind of odd bug turns up with return retrieval for macros nested in CLOS methods
        ;; workaround is to use let binding
-       (let ((answer (,(create-apply obj path) ,(create-this obj path) (apply #'ffi:array args))))
-         answer))))
+       (let ((arg-array (ffi:array)))
+         (loop :for arg :in args
+               :do ((ffi:ref arg-array push) arg))
+         (let ((answer (,(create-apply obj path) ,(create-this obj path) arg-array)))
+           answer)))))
 
  (defmacro create-slot (obj path)
    (labels ((create-getter (obj path)
@@ -53,6 +56,7 @@
 (defmacro def-foreign-method (obj fun-name method-ref)
   "use ffi:ref to get a function reference and then it can be used as a method on that object"
   `(progn 
+     (export ',fun-name *package*)
      (def-foreign-method-impl ,obj ',fun-name (create-method (foreign-ref ,obj) ,method-ref))
      (defmethod ,fun-name ((obj js-object) &rest args)
        (funcall (getf (foreign-methods obj) ',fun-name) args))))
@@ -60,6 +64,7 @@
 (defmacro def-foreign-slot (obj slot-name slot-ref)
   "use ffi:ref to get a slot reference and then it can be used as a setfable slot on that object"
   `(progn 
+     (export ',slot-name *package*)
      (def-foreign-slot-impl ,obj ',slot-name (create-slot (foreign-ref ,obj) ,slot-ref))
      (defmethod ,slot-name ((obj js-object))
        (funcall (foreign-slot-value obj ',slot-name)))
@@ -89,6 +94,12 @@
        (setf (,key instance) (getf initargs (intern (string ',key) "KEYWORD")))
        (if ,alt
            (setf (,key instance) ,alt))))
+
+(defmacro initialize-slots (&rest keys)
+  `(loop :for key in ',keys
+         :do
+         (if (getf initargs (intern (string key) "KEYWORD"))
+             (setf (key instance) (getf initargs (intern (string key) "KEYWORD"))))))
 
 (defmethod initialize-instance :after ((instance js-object) &rest initargs &key &allow-other-keys)
   (if (not (slot-boundp instance 'foreign-ref))

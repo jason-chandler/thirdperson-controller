@@ -1,6 +1,8 @@
 (defpackage :thirdperson-controller
   (:use :cl :valtan.react-utilities)
+  (:shadow LOG)
   (:export MAKE-BUTTON
+           LOG
            *ROTATION-FACTOR*
            DEF-FOREIGN-METHOD
            ON-COLLISION-START
@@ -235,7 +237,11 @@
            TELEPORT
            FIND-BY-NAME
            JS-SETF
-           MODEL-ENTITY))
+           MODEL-ENTITY
+           VEC2
+           VEC4
+           WIDTH))
 
 (defpackage :getting-familiar
+  (:shadowing-import-from :thirdperson-controller :log)
   (:use :cl :valtan.react-utilities :thirdperson-controller))
